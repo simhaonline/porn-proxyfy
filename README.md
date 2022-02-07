@@ -6,7 +6,7 @@ Hide your traffic through [TURN](https://en.wikipedia.org/wiki/Traversal_Using_R
 
 It will use the existing project called [turner](https://github.com/staaldraad/turner) and the gathered WebRTC servers from biggest porn providers.
 
-It is based on my previous research about serious security weakness in biggest adult streaming platforms. You can find it [here](https://github.com/DgSe95/stream-capture-poc) and the `CLI` made from the same research here [here](https://github.com/DgSe95/porn-dump-cli).
+It is based on my previous research about serious security weakness in biggest adult streaming platforms. You can find it [here](https://github.com/DgSe95/stream-capture-poc) and a `CLI` tool based on the same research here [here](https://github.com/DgSe95/porn-dump-cli).
 
 ## Why?
 
