@@ -1,2 +1,8 @@
 # local config
 *.gitconfig
+
+# local turner version
+turner
+
+# test logs
+log_file
