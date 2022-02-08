@@ -39,28 +39,19 @@ go build
 
 ## Usage
 
-* First terminal session
+```
+porn-proxyfy
 
-```bash
-# Get help
-./porn-proxyfy -h
+Hide your traffic through TURN servers from biggest porn providers
+Made with some THC by DgSe95
 
-# Start TURN proxy
-./porn-proxyfy
+Usage: porn-proxyfy.sh [options]
+
+   -l --log    <filename>   - Send output to log file
+   -p --provider   <name>   - Select service provider [stripchat,lovense]
 ```
 
-* Second terminal session
-
-```bash
-# Real IP
-curl -s https://api.myip.com | jq .
-
-# TURN proxy IP (HTTP)
-curl -sx http://localhost:8080 https://api.myip.com | jq .
-
-# TURN proxy IP (SOCKS5)
-curl -s --socks5 socks5://localhost:8000 https://api.myip.com | jq .
-```
+> More providers might be added later based on new findings / research.
 
 ## Example
 
@@ -102,27 +93,45 @@ Press [Ctrl + C] to exit.
 
 ```bash
 # Real IP
-curl -s https://api.myip.com | jq .
+curl -s https://ipinfo.io | jq .
 {
   "ip": "[REDACTED]",
+  "city": "[REDACTED]",
+  "region": "[REDACTED]",
   "country": "[REDACTED]",
-  "cc": "[REDACTED]"
+  "loc": "[REDACTED]",
+  "org": "[REDACTED]",
+  "postal": "[REDACTED]",
+  "timezone": "[REDACTED]",
+  "readme": "https://ipinfo.io/missingauth"
 }
 
 # TURN proxy IP (HTTP)
-curl -sx http://localhost:8080 https://api.myip.com | jq .
+curl -sx http://localhost:8080 https://ipinfo.io | jq .
 {
   "ip": "[REDACTED]",
-  "country": "Netherlands",
-  "cc": "NL"
+  "city": "Amsterdam",
+  "region": "North Holland",
+  "country": "NL",
+  "loc": "[REDACTED]",
+  "org": "[REDACTED]",
+  "postal": "[REDACTED]",
+  "timezone": "[REDACTED]",
+  "readme": "https://ipinfo.io/missingauth"
 }
 
 # TURN proxy IP (SOCKS5)
-curl -s --socks5 socks5://localhost:8000 https://api.myip.com | jq .
+curl -s --socks5 socks5://localhost:8000 https://ipinfo.io | jq .
 {
   "ip": "[REDACTED]",
-  "country": "Netherlands",
-  "cc": "NL"
+  "city": "Amsterdam",
+  "region": "North Holland",
+  "country": "NL",
+  "loc": "[REDACTED]",
+  "org": "[REDACTED]",
+  "postal": "[REDACTED]",
+  "timezone": "[REDACTED]",
+  "readme": "https://ipinfo.io/missingauth"
 }
 ```
 
