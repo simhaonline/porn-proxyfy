@@ -6,7 +6,7 @@
 #
 # Made with some THC by DgSe95
 #
-# Version: 1.0
+# Version: 1.1
 
 # Options
 set +o xtrace
@@ -16,21 +16,43 @@ echo -e "\n`basename $0 | sed -e 's/.sh//'`\n"
 echo -e "Hide your traffic through TURN servers from biggest porn providers"
 echo -e "Made with some THC by DgSe95"
 
-# Usage
-if [[ $1 == '-h' || $1 == '--help' ]]; then
-    echo -e "Usage: `basename $0` [--log] <filename>"
-    exit 0
-elif [[ $1 == '--log' ]]; then
+# Usage / arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            echo -e "\nUsage: `basename $0` [options]\n"
+            echo -e "   -l --log    <filename>   - Send output to log file"
+            echo -e "   -p --provider   <name>   - Select service provider [stripchat,lovense]\n"
+            exit 0
+        ;;
+        -l|--log) LOG_FILE="$2"; shift ;;
+        -p|--provider) PROVIDER="$2"; shift ;;
+        *) echo -e "\nUnknown given parameter: ${1}\n"; exit 1 ;;
+    esac
     shift
-    LOG_FILE=$1
+done
+
+# Provider display
+if [[ ! -z $PROVIDER ]]; then
+    echo -e "\nSelected provider: ${PROVIDER}"
 fi
 
 # Config
-DUMPED_CONFIG_URL="https://stripchat.com/api/front/v2/config"
-DUMPED_USERNAME="`curl -sSL $DUMPED_CONFIG_URL | jq -jc .config.features.webRTCOriginTurnServersConfig.iceServersTemplate.iceServers[0].username`"
-DUMPED_PASSWORD="`curl -sSL $DUMPED_CONFIG_URL | jq -jc .config.features.webRTCOriginTurnServersConfig.iceServersTemplate.iceServers[0].credential`"
-DUMPED_SERVERS=(`curl -sSL $DUMPED_CONFIG_URL | jq -rc .config.features.webRTCTurnServersConfig.servers[]`)
-DUMPED_SERVERS_TEMPLATE="`curl -sSL $DUMPED_CONFIG_URL | jq -jc .config.features.webRTCTurnServersConfig.iceServersTemplate.iceServers[0].url | sed -e 's/turn://' | sed -e 's/?transport=udp//'`"
+SC_CONFIG_URL="https://stripchat.com/api/front/v2/config"
+SC_USERNAME="`curl -sSL $SC_CONFIG_URL | jq -jc .config.features.webRTCOriginTurnServersConfig.iceServersTemplate.iceServers[0].username`"
+SC_PASSWORD="`curl -sSL $SC_CONFIG_URL | jq -jc .config.features.webRTCOriginTurnServersConfig.iceServersTemplate.iceServers[0].credential`"
+SC_SERVERS=(`curl -sSL $SC_CONFIG_URL | jq -rc .config.features.webRTCTurnServersConfig.servers[]`)
+SC_SERVERS_TEMPLATE="`curl -sSL $SC_CONFIG_URL | jq -jc .config.features.webRTCTurnServersConfig.iceServersTemplate.iceServers[0].url | sed -e 's/turn://' | sed -e 's/?transport=udp//'`"
+LV_SERVER="p8E6ov0fo8MyoaAyYzAioGbmAQp9Pt=="
+LV_USERNAME="ETShLJEgnJ9X" 
+LV_PASSWORD="ETShLJEgnJ9lZQR9Pt=="
+
+# guess what is it :P
+d82() {
+    STEP1=$(tr 'A-Za-z0-9' 'N-ZA-Mn-za-m5-90-4' <<< $@)
+    STEP2=$(echo $STEP1 | base64 -d)
+    echo -n $STEP2
+}
 
 # generate a random number from 0 to ($1-1)
 # GLOBALS: _RANDOM.
@@ -58,21 +80,49 @@ shuffle() {
 }
 
 # Randomize server array
-_array=("${DUMPED_SERVERS[@]}"); shuffle ; DUMPED_SERVERS=("${_array[@]}")
+_array=("${SC_SERVERS[@]}"); shuffle ; SC_SERVERS=("${_array[@]}")
 
 # Randomize test
-# echo ${DUMPED_SERVERS[0]}
+# echo ${SC_SERVERS[0]}
 
 # Servers
-RANDOM_SERVER="`echo $DUMPED_SERVERS_TEMPLATE | sed -e 's/{server}/'${DUMPED_SERVERS[0]}'/'`"
+RANDOM_SERVER="`echo $SC_SERVERS_TEMPLATE | sed -e 's/{server}/'${SC_SERVERS[0]}'/'`"
 # echo $RANDOM_SERVER
 
 # Run with both server types (http + socks5)
-echo -e "\nRunning TURN socks/http proxy on [${RANDOM_SERVER}]...\n\nPress [Ctrl + C] to exit.\n"
-if [[ ! -z $LOG_FILE ]]; then
-    # with logs
-    ./turner/turner -server $RANDOM_SERVER -u $DUMPED_USERNAME -p $DUMPED_PASSWORD -socks5 -http | tee $LOG_FILE
+if [[ -z $PROVIDER ]]; then
+    # TODO: Merge all servers together
+
+    echo -e "\nRunning TURN socks/http proxy on [${RANDOM_SERVER}]...\n\nPress [Ctrl + C] to exit.\n"
+    if [[ ! -z $LOG_FILE ]]; then
+        # with logs
+        ./turner/turner -server $RANDOM_SERVER -u $SC_USERNAME -p $SC_PASSWORD -socks5 -http | tee $LOG_FILE
+    else
+        # without logs
+        ./turner/turner -server $RANDOM_SERVER -u $SC_USERNAME -p $SC_PASSWORD -socks5 -http
+    fi
 else
-    # without logs
-    ./turner/turner -server $RANDOM_SERVER -u $DUMPED_USERNAME -p $DUMPED_PASSWORD -socks5 -http
+    case $PROVIDER in
+        stripchat)
+            echo -e "\nRunning TURN socks/http proxy on [${RANDOM_SERVER}]...\n\nPress [Ctrl + C] to exit.\n"
+            if [[ ! -z $LOG_FILE ]]; then
+                # with logs
+                ./turner/turner -server $RANDOM_SERVER -u $SC_USERNAME -p $SC_PASSWORD -socks5 -http | tee $LOG_FILE
+            else
+                # without logs
+                ./turner/turner -server $RANDOM_SERVER -u $SC_USERNAME -p $SC_PASSWORD -socks5 -http
+            fi
+        ;;
+        lovense)
+            echo -e "\nRunning TURN socks/http proxy on [`d82 $LV_SERVER`]...\n\nPress [Ctrl + C] to exit.\n"
+            if [[ ! -z $LOG_FILE ]]; then
+                # with logs
+                ./turner/turner -server `d82 $LV_SERVER` -u `d82 $LV_USERNAME` -p `d82 $LV_PASSWORD` -socks5 -http | tee $LOG_FILE
+            else
+                # without logs
+                ./turner/turner -server `d82 $LV_SERVER` -u `d82 $LV_USERNAME` -p `d82 $LV_PASSWORD` -socks5 -http
+            fi
+        ;;
+        *) echo -e "\nUnknown given provider: ${PROVIDER}\n"; exit 1 ;;
+    esac
 fi
