@@ -6,7 +6,7 @@
 #
 # Made with some THC by DgSe95
 #
-# Version: 1.1
+# Version: 1.2
 
 # Options
 set +o xtrace
@@ -37,22 +37,23 @@ if [[ ! -z $PROVIDER ]]; then
     echo -e "\nSelected provider: ${PROVIDER}"
 fi
 
-# Config
-SC_CONFIG_URL="https://stripchat.com/api/front/v2/config"
-SC_USERNAME="`curl -sSL $SC_CONFIG_URL | jq -jc .config.features.webRTCOriginTurnServersConfig.iceServersTemplate.iceServers[0].username`"
-SC_PASSWORD="`curl -sSL $SC_CONFIG_URL | jq -jc .config.features.webRTCOriginTurnServersConfig.iceServersTemplate.iceServers[0].credential`"
-SC_SERVERS=(`curl -sSL $SC_CONFIG_URL | jq -rc .config.features.webRTCTurnServersConfig.servers[]`)
-SC_SERVERS_TEMPLATE="`curl -sSL $SC_CONFIG_URL | jq -jc .config.features.webRTCTurnServersConfig.iceServersTemplate.iceServers[0].url | sed -e 's/turn://' | sed -e 's/?transport=udp//'`"
-LV_SERVER="p8E6ov0fo8MyoaAyYzAioGbmAQp9Pt=="
-LV_USERNAME="ETShLJEgnJ9X" 
-LV_PASSWORD="ETShLJEgnJ9lZQR9Pt=="
-
 # guess what is it :P
 d82() {
     STEP1=$(tr 'A-Za-z0-9' 'N-ZA-Mn-za-m5-90-4' <<< $@)
-    STEP2=$(echo $STEP1 | base64 -d)
+    STEP2=$(echo -n $STEP1 | base64 -d)
     echo -n $STEP2
 }
+
+# Config
+SC_CONFIG_URL=`d82 nUE5pUZ1Yl4mqUWcpTAbLKDhL74gY7SjnF4zpz4hqP47Zv4wo70znJpX`
+SC_USERNAME=`curl -sSL $SC_CONFIG_URL | jq -jc .config.features.webRTCTurnServersConfig.iceServersTemplate.iceServers[0].username`
+SC_PASSWORD=`curl -sSL $SC_CONFIG_URL | jq -jc .config.features.webRTCTurnServersConfig.iceServersTemplate.iceServers[0].credential`
+SC_SERVERS=(`curl -sSL $SC_CONFIG_URL | jq -rc .config.features.webRTCTurnServersConfig.servers[]`)
+SC_SERVERS_TOTAL=`curl -sSL $SC_CONFIG_URL | jq -rc .config.features.webRTCTurnServersConfig.servers[] | wc -l`
+SC_SERVERS_TEMPLATE=`curl -sSL $SC_CONFIG_URL | jq -jc .config.features.webRTCTurnServersConfig.iceServersTemplate.iceServers[0].url | sed -e 's/turn://' | sed -e 's/?transport=udp//'`
+LV_SERVER=`d82 p8E6ov0fo8MyoaAyYzAioGbmAQp9Pt==`
+LV_USERNAME=`d82 ETShLJEgnJ9X`
+LV_PASSWORD=`d82 ETShLJEgnJ9lZQR9Pt==`
 
 # generate a random number from 0 to ($1-1)
 # GLOBALS: _RANDOM.
@@ -93,7 +94,7 @@ RANDOM_SERVER="`echo $SC_SERVERS_TEMPLATE | sed -e 's/{server}/'${SC_SERVERS[0]}
 if [[ -z $PROVIDER ]]; then
     # TODO: Merge all servers together
 
-    echo -e "\nRunning TURN socks/http proxy on [${RANDOM_SERVER}]...\n\nPress [Ctrl + C] to exit.\n"
+    echo -e "\nServers found: ${SC_SERVERS_TOTAL}\nRunning TURN socks/http proxy on [${RANDOM_SERVER}]...\n\nPress [Ctrl + C] to exit.\n"
     if [[ ! -z $LOG_FILE ]]; then
         # with logs
         ./turner/turner -server $RANDOM_SERVER -u $SC_USERNAME -p $SC_PASSWORD -socks5 -http | tee $LOG_FILE
@@ -104,7 +105,7 @@ if [[ -z $PROVIDER ]]; then
 else
     case $PROVIDER in
         stripchat)
-            echo -e "\nRunning TURN socks/http proxy on [${RANDOM_SERVER}]...\n\nPress [Ctrl + C] to exit.\n"
+            echo -e "\nServers found: ${SC_SERVERS_TOTAL}\nRunning TURN socks/http proxy on [${RANDOM_SERVER}]...\n\nPress [Ctrl + C] to exit.\n"
             if [[ ! -z $LOG_FILE ]]; then
                 # with logs
                 ./turner/turner -server $RANDOM_SERVER -u $SC_USERNAME -p $SC_PASSWORD -socks5 -http | tee $LOG_FILE
@@ -114,13 +115,13 @@ else
             fi
         ;;
         lovense)
-            echo -e "\nRunning TURN socks/http proxy on [`d82 $LV_SERVER`]...\n\nPress [Ctrl + C] to exit.\n"
+            echo -e "\nServers found: 1\nRunning TURN socks/http proxy on [$LV_SERVER]...\n\nPress [Ctrl + C] to exit.\n"
             if [[ ! -z $LOG_FILE ]]; then
                 # with logs
-                ./turner/turner -server `d82 $LV_SERVER` -u `d82 $LV_USERNAME` -p `d82 $LV_PASSWORD` -socks5 -http | tee $LOG_FILE
+                ./turner/turner -server $LV_SERVER -u $LV_USERNAME -p $LV_PASSWORD -socks5 -http | tee $LOG_FILE
             else
                 # without logs
-                ./turner/turner -server `d82 $LV_SERVER` -u `d82 $LV_USERNAME` -p `d82 $LV_PASSWORD` -socks5 -http
+                ./turner/turner -server $LV_SERVER -u $LV_USERNAME -p $LV_PASSWORD -socks5 -http
             fi
         ;;
         *) echo -e "\nUnknown given provider: ${PROVIDER}\n"; exit 1 ;;
